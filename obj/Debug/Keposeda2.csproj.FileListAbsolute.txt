@@ -1,0 +1,5 @@
+C:\SourceCode\WebApps\Keposeda2\obj\Debug\ResolveAssemblyReference.cache
+C:\SourceCode\WebApps\Keposeda2\bin\Keposeda2.dll
+C:\SourceCode\WebApps\Keposeda2\bin\Keposeda2.pdb
+C:\SourceCode\WebApps\Keposeda2\obj\Debug\Keposeda2.dll
+C:\SourceCode\WebApps\Keposeda2\obj\Debug\Keposeda2.pdb
