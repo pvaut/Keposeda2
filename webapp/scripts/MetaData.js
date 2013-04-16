@@ -2,8 +2,9 @@ define([DQXSC("Utils")],
     function (DQX) {
         var MetaData = {};
 
-        MetaData.database = "test";//name of the database used
-        MetaData.tableSNPInfo = "snps";//name of the table containing the snp data
+        MetaData.database = "world";//name of the database used
+        //MetaData.database = "test"; //name of the database used
+        MetaData.tableSNPInfo = "snps"; //name of the table containing the snp data
 
         //////// Information about the chromosomes
         //!!!TODO: this shouldn't be hard-wired, but fetched from the server!!!!

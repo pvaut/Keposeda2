@@ -84,7 +84,7 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
                     //Attach a custom tooltip creation function to the channel
                     theChannel.getToolTipContent = function (compID, pointIndex) {
                         var value = this.myComponents[compID].myfetcher.getColumnPoint(pointIndex, compID);
-                        return that.dataFetcherSNPs.getColumnPoint(pointIndex, 'snpid')+'; ' + compID + '= ' + value.toFixed(2);
+                        return that.dataFetcherSNPs.getColumnPoint(pointIndex, 'snpid') + '; ' + compID + '= ' + value.toFixed(2);
                     }
 
                     //List of all components that will go into this channel
@@ -111,12 +111,13 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
                         that.panelBrowser.channelModifyVisibility(theChannel.getID(), true);
 
                         //create a checkbox controlling the visibility of this component
+                        var colorIndicator = Controls.Static('<span style="background-color:{color}">&nbsp;&nbsp;&nbsp;</span>&nbsp;'.DQXformat({ color: comp.color.toString() }));
                         var chk = Controls.Check('', { label: comp.id, value: true });
                         chk.setOnChanged(function () {
                             theChannel.modifyComponentActiveStatus(comp.id, chk.getValue());
                             that.panelBrowser.render();
                         });
-                        controlsList.push(chk);
+                        controlsList.push(Controls.CompoundHor([colorIndicator, chk]));
 
                     });
 

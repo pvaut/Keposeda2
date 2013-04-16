@@ -1,5 +1,5 @@
-﻿define([DQXSC("Framework"), DQXSC("HistoryManager"), DQXSC("DocEl"), DQXSC("Msg"), "Views/Intro", "Views/Browser", "Views/GenomeBrowser", "Views/Samples", "Views/Variants"],
-    function (Framework, HistoryManager, DocEl, Msg, IntroModule, BrowserModule, GenomeBrowserModule, SamplesModule, VariantsModule) {
+﻿define([DQXSC("Framework"), DQXSC("HistoryManager"), DQXSC("DocEl"), DQXSC("Msg"), "Views/Intro", "Views/GenomeBrowser"],
+    function (Framework, HistoryManager, DocEl, Msg, IntroModule, GenomeBrowserModule) {
         thePage = {
 
             createFramework: function () {
