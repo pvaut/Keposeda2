@@ -1,6 +1,6 @@
 ﻿
-define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("SQL"), DQXSC("DocEl"), DQXSC("Utils"), DQXSC("FrameList"), DQXSC("ChannelPlot/GenomePlotter"), DQXSC("ChannelPlot/ChannelSequence"), DQXSC("ChannelPlot/ChannelSnps"), DQXSC("ChannelPlot/ChannelYVals"), DQXSC("DataFetcher/DataFetcherFile"), DQXSC("DataFetcher/DataFetchers"), "MetaData"],
-    function (require, Framework, Controls, Msg, SQL, DocEl, DQX, FrameList, GenomePlotter, ChannelSequence, ChannelSnps, ChannelYVals, DataFetcherFile, DataFetchers, MetaData) {
+define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("SQL"), DQXSC("DocEl"), DQXSC("Utils"), DQXSC("FrameList"), DQXSC("ChannelPlot/GenomePlotter"), DQXSC("ChannelPlot/ChannelSequence"), DQXSC("ChannelPlot/ChannelSnps"), DQXSC("ChannelPlot/ChannelYVals"), DQXSC("DataFetcher/DataFetcherFile"), DQXSC("DataFetcher/DataFetchers"), DQXSC("DataFetcher/DataFetcherSummary"), "MetaData"],
+    function (require, Framework, Controls, Msg, SQL, DocEl, DQX, FrameList, GenomePlotter, ChannelSequence, ChannelSnps, ChannelYVals, DataFetcherFile, DataFetchers, DataFetcherSummary, MetaData) {
 
         var GenomeBrowserModule = {
 
@@ -25,7 +25,8 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
 
                     var browserConfig = {
                         serverURL: serverUrl,
-                        chromoIdField: 'chrom',
+                        chromnrfield: 'chrom',
+//                        chromoIdField: 'chromid',//set this to use chromosome id's
                         annotTableName: 'henb37annot',
                         viewID: 'GenomeBrowser',
                         database: MetaData.database,
@@ -43,14 +44,16 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
                     this.panelBrowser.getNavigator().setMinScrollSize(0.0001);
 
                     //Annotation table has 'chrX' chromosome identifiers rather than numbers, so we translate them
-                    this.panelBrowser.getAnnotationFetcher().translateChromoId = function (id) { return 'chr' + id; }
+                    //this.panelBrowser.getAnnotationFetcher().translateChromoId = function (id) { return 'chr' + id; }
 
                     //Define the chromosomes
                     $.each(MetaData.chromosomes, function (idx, chromo) {
                         that.panelBrowser.addChromosome(chromo.id, chromo.id, chromo.len);
                     });
 
-                    this.createSNPChannels();
+//                    this.createSNPChannels();
+
+                    this.createProfileChannels();
 
                     //Causes the browser to start with a sensible start region
                     var firstChromosome = MetaData.chromosomes[0].id;
@@ -76,7 +79,7 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
 
                     //Create a channel that will show the IHS values
                     var theChannel = ChannelYVals.Channel('IHS', { minVal: -5, maxVal: +5 });
-                    theChannel.minDrawZoomFactX = 0.000025;
+                    theChannel.minDrawZoomFactX = 0.00005;
                     theChannel.setTitle("IHS");
                     theChannel.setHeight(250);
                     this.panelBrowser.addChannel(theChannel, false);
@@ -84,7 +87,10 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
                     //Attach a custom tooltip creation function to the channel
                     theChannel.getToolTipContent = function (compID, pointIndex) {
                         var value = this.myComponents[compID].myfetcher.getColumnPoint(pointIndex, compID);
-                        return that.dataFetcherSNPs.getColumnPoint(pointIndex, 'snpid') + '; ' + compID + '= ' + value.toFixed(2);
+                        if (value != null)
+                            return that.dataFetcherSNPs.getColumnPoint(pointIndex, 'snpid') + '; ' + compID + '= ' + value.toFixed(2);
+                        else
+                            return 'No value';
                     }
 
                     //List of all components that will go into this channel
@@ -126,6 +132,40 @@ define([DQXSCRQ(), DQXSC("Framework"), DQXSC("Controls"), DQXSC("Msg"), DQXSC("S
                     this.panelControls.render();
 
                 }
+
+
+                that.createProfileChannels = function () {
+                    this.dataFetcherProfiles = new DataFetcherSummary.Fetcher(serverUrl, 1000, 1200);
+
+                    //this.dataFetcherProfiles.translateChromoId = function (inp) { return 'chr' + inp; } //This translates from numerical chromosome ID's to chrXXX ID's. NOTE !!! : need better method in case of X,Y chromosomes
+                    this.panelBrowser.addDataFetcher(this.dataFetcherProfiles);
+
+                    var folder = 'HumanGWAS/Signif'
+
+                    var ID = 'pval';
+
+                    var SummChannel = ChannelYVals.Channel(ID, { minVal: 0, maxVal: 7 });
+                    SummChannel.setTitle('Significance');
+                    SummChannel.setHeight(300, true);
+                    that.panelBrowser.addChannel(SummChannel);
+
+                    var components = [];
+                    components.push({ id: 'Max', color: DQX.Color(1.0, 0, 0) });
+                    components.push({ id: 'Q99', color: DQX.Color(0, 0, 1.0) });
+                    components.push({ id: 'Q95', color: DQX.Color(0, 0, 0.5) });
+                    components.push({ id: 'Q50', color: DQX.Color(0, 0, 0.5) });
+
+                    $.each(components, function (idx, component) {
+                        var colinfo = that.dataFetcherProfiles.addFetchColumn(folder, 'Summ01', ID + '_' + component.id);
+                        var comp = SummChannel.addComponent(ChannelYVals.CompFilled(colinfo.myID, that.dataFetcherProfiles, colinfo.myID));
+                        comp.setColor(component.color);
+                        comp.myPlotHints.makeDrawLines(3000000.0); //This causes the points to be connected with lines
+                        comp.myPlotHints.interruptLineAtAbsent = true;
+                        comp.myPlotHints.drawPoints = false;
+                        SummChannel.modifyComponentActiveStatus(colinfo.myID, true, false);
+                    });
+                }
+
 
 
                 //Call this function to jump to & highlight a specific region on the genome
